@@ -1,105 +1,108 @@
-# Issue Kanban
+<div align="center">
 
-A tiny native macOS app that turns the issues from one or more GitHub
-repositories into a local kanban board — with a bring-your-own-key AI
-"done-check" that verifies an issue is actually finished against the real repo.
+# 🗂️ Issue Kanban
 
-Built on [tinyjs](https://github.com/tarwin/tinyjsapp) — a ~6 MB native app
-(a txiki.js backend + the system WebKit webview, no Electron/Node) — with a
-React + [shadcn/ui](https://ui.shadcn.com) frontend.
+**A tiny, native macOS kanban for your GitHub issues.**
 
-## Features
+Built on [tinyjs](https://github.com/tarwin/tinyjsapp) — a ~6 MB native app (no Electron, no Node) —
+with a React + [shadcn/ui](https://ui.shadcn.com) interface and a bring-your-own-key AI "done-check".
 
-- **Connect GitHub with a personal access token** — validated against the API
-  and stored in the **macOS Keychain**, never on disk.
-- **Track one or many repositories** — pull every issue (labels, assignees,
-  milestone, state, comments) into a local SQLite database.
-- **Kanban board** — drag issues across `Backlog → Todo → In Progress →
-  In Review → Done`. Statuses live locally, so you can extend the workflow
-  beyond GitHub's `open`/`closed`.
-- **Create / update / delete issues** — writes through to GitHub.
-  - *Create*: new issue with title, body, labels.
-  - *Update*: edit title, body, labels.
-  - *Delete*: closes the issue. GitHub's REST API has no "delete issue"
-    endpoint (permanent deletion is an admin-only GraphQL mutation), so
-    closing is the standard, reversible action.
-- **Claim issues** — mark yourself as the owner in one click.
-- **AI done-check (BYOK)** — for any issue, run an agent that inspects merged
-  PRs, commits, and comments, then reports `done` / `partially done` /
-  `not done` / `insufficient info` with evidence, confidence, and a suggested
-  status. Works with any OpenAI-compatible provider.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![tinyjs](https://img.shields.io/badge/powered%20by-tinyjs-6366f1)](https://tinyjs.app)
+[![React 19](https://img.shields.io/badge/React-19-61dafb)](https://react.dev)
+[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-4.x-000000)](https://ui.shadcn.com)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-## Requirements
+</div>
 
-- macOS 14+ (universal binary)
-- [`tinyjs`](https://tinyjs.app) CLI — `curl -fsSL https://tinyjs.app/install | sh`
-- Node.js 20+ (only for the frontend build tooling)
+---
 
-## Quick start
+## ✨ Features
+
+- 🔗 **Connect GitHub** with a personal access token — validated and stored in the **macOS Keychain**, never on disk.
+- 📋 **Multi-repo kanban** — drag issues across `Backlog → Todo → In Progress → In Review → Done`. Statuses live locally, so your workflow isn't limited to GitHub's `open`/`closed`.
+- 🪄 **Create / update / close issues** — writes straight through to GitHub.
+- 🤖 **AI done-check (BYOK)** — an agent inspects merged PRs, commits, and comments, then reports `done` / `partially done` / `not done` / `insufficient info` — with evidence, confidence, and a suggested status. Works with any OpenAI-compatible provider.
+- 📊 **Dashboard & Analytics** — live stats, a status donut, and per-repository / per-assignee breakdowns.
+- 📬 **Mailbox** — issues assigned to you (or that you've claimed) in one place.
+- 📝 **Report** — a one-click markdown summary you can copy out.
+- 🎨 **Gorgeous, keyboard-friendly UI** — shadcn/ui with light/dark themes and drag-and-drop.
+
+## 🖥️ Why tinyjs?
+
+- **~6 MB shipped** — no Electron, no bundled Chromium.
+- **No HTTP server, no ports** — the UI and backend talk over a private Unix socket.
+- **Native macOS** — Keychain secrets, real `.app` bundles, notifications.
+- **Local-first** — your issues live in SQLite on your machine; your tokens live in the Keychain.
+
+## 🚀 Quick start
 
 ```sh
+# 1. install tinyjs
+curl -fsSL https://tinyjs.app/install | sh
+
+# 2. clone & run
+git clone https://github.com/scarranca/issue-kanban.git
+cd issue-kanban
 npm install
-tinyjs dev        # opens a native window with hot reload
-tinyjs build      # packages dist/issue-kanban + dist/"Issue Kanban.app"
+tinyjs dev        # native window with hot reload
+tinyjs build      # package dist/"Issue Kanban.app"
 ```
 
-Then, in the app:
+Then in the app:
 
-1. **Settings → Account** — set your name and connect a GitHub token.
-2. **Settings → Repositories** — add the repos you want to track.
-3. **Settings → AI** — add an LLM key (optional, for the done-check).
-4. Press **Sync**, then drag cards around the board.
+**Settings → Account** (name + GitHub token) → **Repositories** (add repos) → **AI** (optional LLM key) → **Sync**.
 
-## GitHub token scopes
+## 🔑 GitHub token scopes
 
-Create a token at **GitHub → Settings → Developer settings → Personal access
-tokens**.
+Create a token at **GitHub → Settings → Developer settings → Personal access tokens**.
 
-- **Fine-grained token** (recommended): *Issues* (read + write), *Pull
-  requests* (read), *Contents* (read) for the repos you track.
-- **Classic token**: `repo` (private repos) or `public_repo` + `read:org`.
+| Type                     | Scopes                                                        |
+| ------------------------ | ------------------------------------------------------------- |
+| Fine-grained (recommended) | Issues *(read + write)*, Pull requests *(read)*, Contents *(read)* |
+| Classic                  | `repo` (private) or `public_repo` + `read:org`                |
 
-Write access on *Issues* is only needed for create/edit/close. Read access
-suffices for the board and the AI done-check.
+Write access on *Issues* is only required for create / edit / close.
 
-## AI providers
+## 🤖 AI providers
 
-Every provider is driven through an OpenAI-compatible chat-completions
-endpoint. Defaults:
+Any OpenAI-compatible endpoint works. Defaults:
 
-| Provider   | Base URL                                                | Default model              |
-| ---------- | ------------------------------------------------------- | -------------------------- |
-| OpenAI     | `https://api.openai.com/v1`                             | `gpt-4o-mini`              |
-| Anthropic  | `https://api.anthropic.com/v1`                          | `claude-sonnet-4-20250514` |
-| DeepSeek   | `https://api.deepseek.com/v1`                           | `deepseek-chat`            |
-| OpenRouter | `https://openrouter.ai/api/v1`                          | `anthropic/claude-sonnet-4`|
-| Gemini     | `https://generativelanguage.googleapis.com/v1beta/openai`| `gemini-2.0-flash`         |
-| Custom     | (anything OpenAI-compatible — Ollama, vLLM, Azure…)     | —                          |
+| Provider   | Base URL                                                 | Default model              |
+| ---------- | -------------------------------------------------------- | -------------------------- |
+| OpenAI     | `https://api.openai.com/v1`                              | `gpt-4o-mini`              |
+| Anthropic  | `https://api.anthropic.com/v1`                           | `claude-sonnet-4-20250514` |
+| DeepSeek   | `https://api.deepseek.com/v1`                            | `deepseek-chat`            |
+| OpenRouter | `https://openrouter.ai/api/v1`                           | `anthropic/claude-sonnet-4`|
+| Gemini     | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.0-flash`         |
+| Custom     | any OpenAI-compatible (Ollama, vLLM, Azure…)             | —                          |
 
-Base URL and model are editable per provider, and you choose the default used
-for done-checks.
+Base URL and model are editable per provider, and you choose the default used for done-checks.
 
-## How it works
+## 🏗️ How it works
 
 ```
-backend/          txiki.js backend (full system access, no ports)
-  main.ts         api surface the page calls via tiny.api.call(...)
+backend/          txiki.js backend — full system access, no ports
+  main.ts         API surface (tiny.api.call)
   db.ts           SQLite (tjs:sqlite) — repos, issues, analyses
   github.ts       GitHub REST client (pagination + create/update/close)
   ai.ts           minimal OpenAI-compatible client (no SDK)
   agent.ts        done-check agent (prompt + verdict parsing)
-src/              React + shadcn/ui frontend (rendered by system WebKit)
+src/              React 19 + shadcn/ui + Tailwind v4
+  components/     sidebar, topbar, board, dashboard, analytics, mailbox, …
 ```
 
-- The page and backend talk over a private Unix socket — **no HTTP server, no
-  ports**.
-- The GitHub token and LLM keys live in the **Keychain**
-  (`tiny.secrets` / `app.secrets`), not in the database.
-- Board statuses and ownership are stored in **SQLite** in
-  `~/Library/Application Support/com.issuekanban.app/`.
-- The AI verdict never trusts a "closed" state on its own — it reads PRs,
-  commits, and comments to decide whether the issue is actually done.
+- The page and backend talk over a **private Unix socket** — no HTTP server, no ports.
+- GitHub token + LLM keys live in the **Keychain**; board state in **SQLite**.
+- The AI verdict never trusts a "closed" state on its own — it reads PRs, commits, and comments to decide if the issue is *actually* done.
 
-## License
+## 🧭 Roadmap
 
-MIT — see [LICENSE](./LICENSE).
+- [ ] Click-through from the Analytics donut to a filtered board
+- [ ] Export the report to a `.md` file
+- [ ] Label-based status sync back to GitHub
+- [ ] Markdown preview toggle while editing
+
+## 📜 License
+
+[MIT](LICENSE) © 2026 Issue Kanban contributors
